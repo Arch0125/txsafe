@@ -3,6 +3,7 @@ import { OnTransactionHandler } from '@metamask/snaps-types';
 import { panel, heading, text, divider } from '@metamask/snaps-ui';
 import {ethers} from 'ethers';
 import {Simulator} from './helpers/Simulator';
+const checkForPhishing = require('eth-phishing-detect')
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -43,18 +44,24 @@ export const onTransaction: OnTransactionHandler = async ({
   const {walletin,walletout} = await Simulator(transaction,chainId);
 
   const insights = [
-    `Transaction to: ${transaction.to}`,
-    `Amount: ${ethers.utils.formatEther(String(ethers.BigNumber.from(transaction.value)))}`,
-    `Transaction origin: ${transactionOrigin}`,
-    `Chain ID: ${chainId.split(':')[1]}`,
+    `**Transaction origin:** ${transactionOrigin?transactionOrigin:'Origin not found'}`,
   ]
+
+  const isPhishing = checkForPhishing(transactionOrigin)
+  let warning=''
+  if (isPhishing) {
+    warning = '**⚠️ This site has been reported as a phishing site. Proceed with caution.**'
+  }else{
+    warning = '**✅ This site has not been reported as a phishing site.**'
+  }
 
 
   return {
     content: panel([
-      heading('My Transaction Insights'),
-      text('Here are the insights:'),
+      heading('🚨 Review Transaction'),
+      divider(),
       ...(insights.map((insight) => text(insight))),
+      text(`${transactionOrigin?warning:''}`),
       divider(),
       heading('Asset Changes'),
       text('**↙ Wallet In:**'),

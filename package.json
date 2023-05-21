@@ -48,6 +48,7 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "eth-phishing-detect": "^1.2.0",
     "ethers": "5.7.2"
   }
 }
